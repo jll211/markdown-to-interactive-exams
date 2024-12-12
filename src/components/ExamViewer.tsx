@@ -64,19 +64,19 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
   // Create a custom renderer
   const renderer = new marked.Renderer();
   
-  // Override the code rendering method
-  renderer.code = function(code: string, language?: string): string {
-    if (language === 'graph') {
+  // Override the code rendering method with the correct type signature
+  renderer.code = function({ text, lang }: { text: string, lang?: string }): string {
+    if (lang === 'graph') {
       try {
         let graphData;
         // Check if the code contains specific markers for our predefined graphs
-        if (code.includes('GRAPH_9')) {
+        if (text.includes('GRAPH_9')) {
           graphData = graph9Data;
-        } else if (code.includes('GRAPH_10')) {
+        } else if (text.includes('GRAPH_10')) {
           graphData = graph10Data;
         } else {
           // If no specific marker, try to parse the code as JSON
-          graphData = JSON.parse(code);
+          graphData = JSON.parse(text);
         }
         
         const graphComponent = (
@@ -93,10 +93,10 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
         return renderToString(graphComponent);
       } catch (e) {
         console.error('Failed to parse graph data:', e);
-        return `<pre><code>${code}</code></pre>`;
+        return `<pre><code>${text}</code></pre>`;
       }
     }
-    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
+    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${text}</code></pre>`;
   };
 
   // Process the markdown content
