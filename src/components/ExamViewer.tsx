@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { parseMarkdown } from "@/utils/MarkdownParser";
+import Graph from "./graphs/Graph";
 
 interface ExamViewerProps {
   examContent: string;
@@ -19,6 +19,130 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
 
   const toggleSolution = () => {
     setShowSolution(!showSolution);
+  };
+
+  const graphs = {
+    GRAPH_9: {
+      nodes: [
+        { id: 'A', label: 'A', x: 100, y: 100 },
+        { id: 'B', label: 'B', x: 300, y: 100 },
+        { id: 'C', label: 'C', x: 100, y: 200 },
+        { id: 'D', label: 'D', x: 300, y: 200 }
+      ],
+      edges: [
+        { from: 'A', to: 'B', weight: '2', directed: true },
+        { from: 'A', to: 'C', weight: '4', directed: true },
+        { from: 'B', to: 'D', weight: '5', directed: true },
+        { from: 'C', to: 'D', weight: '1', directed: true },
+        { from: 'B', to: 'C', weight: '3', directed: true }
+      ]
+    },
+    GRAPH_10: {
+      nodes: [
+        { id: 'A', label: 'A', x: 100, y: 100 },
+        { id: 'B', label: 'B', x: 200, y: 100 },
+        { id: 'C', label: 'C', x: 300, y: 100 },
+        { id: 'D', label: 'D', x: 100, y: 200 },
+        { id: 'E', label: 'E', x: 200, y: 200 },
+        { id: 'F', label: 'F', x: 300, y: 200 }
+      ],
+      edges: [
+        { from: 'A', to: 'B', directed: false },
+        { from: 'B', to: 'C', directed: false },
+        { from: 'D', to: 'E', directed: false },
+        { from: 'E', to: 'F', directed: false },
+        { from: 'A', to: 'D', directed: false },
+        { from: 'B', to: 'E', directed: false },
+        { from: 'C', to: 'F', directed: false }
+      ]
+    }
+  };
+
+  const parseMarkdown = (content: string): JSX.Element[] => {
+    if (!content) return [];
+
+    const lines = content.split('\n');
+    const elements: JSX.Element[] = [];
+    let inCodeBlock = false;
+    let currentGraphType = '';
+    let key = 0;
+
+    lines.forEach((line, index) => {
+      // Handle code blocks for graphs
+      if (line.trim().startsWith('```graph')) {
+        inCodeBlock = true;
+        currentGraphType = '';
+        return;
+      }
+      
+      if (inCodeBlock && line.trim().startsWith('```')) {
+        inCodeBlock = false;
+        return;
+      }
+
+      if (inCodeBlock) {
+        // Check for graph type in the content
+        if (line.includes('GRAPH_9')) {
+          currentGraphType = 'GRAPH_9';
+          elements.push(
+            <div key={`graph-${key++}`} className="my-6">
+              <Graph
+                nodes={graphs.GRAPH_9.nodes}
+                edges={graphs.GRAPH_9.edges}
+                width={400}
+                height={300}
+                className="mx-auto border border-gray-200 rounded-lg"
+              />
+            </div>
+          );
+        } else if (line.includes('GRAPH_10')) {
+          currentGraphType = 'GRAPH_10';
+          elements.push(
+            <div key={`graph-${key++}`} className="my-6">
+              <Graph
+                nodes={graphs.GRAPH_10.nodes}
+                edges={graphs.GRAPH_10.edges}
+                width={400}
+                height={300}
+                className="mx-auto border border-gray-200 rounded-lg"
+              />
+            </div>
+          );
+        }
+        return;
+      }
+
+      // Handle regular markdown elements
+      if (line.startsWith('# ')) {
+        elements.push(
+          <h1 key={key++} className="text-3xl font-bold mb-4">
+            {line.slice(2)}
+          </h1>
+        );
+      } else if (line.startsWith('## ')) {
+        elements.push(
+          <h2 key={key++} className="text-2xl font-bold mb-3">
+            {line.slice(3)}
+          </h2>
+        );
+      } else if (line.startsWith('### ')) {
+        elements.push(
+          <h3 key={key++} className="text-xl font-bold mb-2">
+            {line.slice(4)}
+          </h3>
+        );
+      } else if (line.trim() === '') {
+        elements.push(<br key={key++} />);
+      } else {
+        elements.push(
+          <p key={key++} className="mb-4">
+            {line}
+          </p>
+        );
+      }
+    });
+
+    return elements;
   };
 
   return (
