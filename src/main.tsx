@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 
@@ -8,7 +8,7 @@ if (!container) {
   throw new Error('Failed to find the root element')
 }
 
-const root = ReactDOM.createRoot(container)
+const root = createRoot(container)
 
 root.render(
   <React.StrictMode>
