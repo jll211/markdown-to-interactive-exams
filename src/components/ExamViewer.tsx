@@ -29,7 +29,7 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
   const renderer = new marked.Renderer();
   
   // Override the code rendering method with correct type signature
-  renderer.code = function(code: string, language?: string): string {
+  renderer.code = (code: string, language?: string | undefined) => {
     if (language === 'graph') {
       try {
         const graphData = JSON.parse(code);
