@@ -2,7 +2,9 @@ import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { marked } from "marked";
+import Graph from "./graphs/Graph";
 
 interface ExamViewerProps {
   examContent: string;
@@ -37,8 +39,34 @@ const ExamViewer = ({ examContent, solutionContent, onBack }: ExamViewerProps) =
     console.log("Solution content:", solutionContent);
   };
 
+  // Custom renderer for marked to handle special content
+  const renderer = {
+    code(code: string, language: string) {
+      if (language === 'graph') {
+        try {
+          const graphData = JSON.parse(code);
+          return `<div class="my-6">
+            ${React.createElement(Graph, {
+              nodes: graphData.nodes,
+              edges: graphData.edges,
+              width: graphData.width || 400,
+              height: graphData.height || 300,
+              className: 'mx-auto'
+            })}
+          </div>`;
+        } catch (e) {
+          console.error('Failed to parse graph data:', e);
+          return `<pre><code>${code}</code></pre>`;
+        }
+      }
+      return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
+    }
+  };
+
+  marked.use({ renderer });
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-4xl mx-auto">
       <Button
         variant="ghost"
         className="mb-4 text-gray-600 hover:text-gray-900"
@@ -52,23 +80,45 @@ const ExamViewer = ({ examContent, solutionContent, onBack }: ExamViewerProps) =
       <Card className="p-8 bg-white shadow-lg">
         <div className="prose max-w-none">
           <div
-            className="markdown-content"
-            dangerouslySetInnerHTML={{ __html: marked(examContent) }}
+            className="markdown-content space-y-8"
+            dangerouslySetInnerHTML={{ 
+              __html: marked(examContent, { renderer }) 
+            }}
           />
         </div>
 
         <div className="mt-8 space-y-6">
           <div className="space-y-4">
-            <label className="block text-lg font-medium text-gray-900">
-              Antwort
-            </label>
-            <textarea
-              className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              rows={6}
-              onChange={(e) => handleAnswerChange(1, e.target.value)}
+            <RadioGroup
+              onValueChange={(value) => handleAnswerChange(1, value)}
               disabled={showResults}
-              placeholder="Geben Sie hier Ihre Antwort ein..."
-            />
+              className="space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="a" id="a" />
+                <label htmlFor="a" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Option A
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="b" id="b" />
+                <label htmlFor="b" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Option B
+                </label>
+              </div>
+            </RadioGroup>
+
+            <div className="mt-6">
+              <label className="block text-lg font-medium text-gray-900 mb-2">
+                Freitextantwort
+              </label>
+              <textarea
+                className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[150px]"
+                onChange={(e) => handleAnswerChange(2, e.target.value)}
+                disabled={showResults}
+                placeholder="Geben Sie hier Ihre Antwort ein..."
+              />
+            </div>
           </div>
         </div>
 
