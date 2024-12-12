@@ -29,10 +29,10 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
   const renderer = new marked.Renderer();
   
   // Override the code rendering method with the correct type signature
-  renderer.code = function(code: string, language?: string | undefined): string {
-    if (language === 'graph') {
+  renderer.code = function({ text, lang, escaped }: { text: string, lang?: string, escaped?: boolean }): string {
+    if (lang === 'graph') {
       try {
-        const graphData = JSON.parse(code);
+        const graphData = JSON.parse(text);
         const graphComponent = (
           <div className="my-6">
             <Graph
@@ -47,10 +47,10 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
         return renderToString(graphComponent);
       } catch (e) {
         console.error('Failed to parse graph data:', e);
-        return `<pre><code>${code}</code></pre>`;
+        return `<pre><code>${text}</code></pre>`;
       }
     }
-    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
+    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${text}</code></pre>`;
   };
 
   // Set up marked options
