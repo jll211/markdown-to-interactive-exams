@@ -61,42 +61,42 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
     ]
   };
 
-  // Create a custom renderer that extends the default renderer
-  const renderer = {
-    ...new marked.Renderer(),
-    code(code: string, language?: string): string {
-      if (language === 'graph') {
-        try {
-          let graphData;
-          // Check if the code contains specific markers for our predefined graphs
-          if (code.includes('GRAPH_9')) {
-            graphData = graph9Data;
-          } else if (code.includes('GRAPH_10')) {
-            graphData = graph10Data;
-          } else {
-            // If no specific marker, try to parse the code as JSON
-            graphData = JSON.parse(code);
-          }
-          
-          const graphComponent = (
-            <div className="my-6">
-              <Graph
-                nodes={graphData.nodes}
-                edges={graphData.edges}
-                width={400}
-                height={300}
-                className="mx-auto"
-              />
-            </div>
-          );
-          return renderToString(graphComponent);
-        } catch (e) {
-          console.error('Failed to parse graph data:', e);
-          return `<pre><code>${code}</code></pre>`;
+  // Create a custom renderer
+  const renderer = new marked.Renderer();
+  
+  // Override the code rendering method
+  renderer.code = function(code: string, language?: string): string {
+    if (language === 'graph') {
+      try {
+        let graphData;
+        // Check if the code contains specific markers for our predefined graphs
+        if (code.includes('GRAPH_9')) {
+          graphData = graph9Data;
+        } else if (code.includes('GRAPH_10')) {
+          graphData = graph10Data;
+        } else {
+          // If no specific marker, try to parse the code as JSON
+          graphData = JSON.parse(code);
         }
+        
+        const graphComponent = (
+          <div className="my-6">
+            <Graph
+              nodes={graphData.nodes}
+              edges={graphData.edges}
+              width={400}
+              height={300}
+              className="mx-auto"
+            />
+          </div>
+        );
+        return renderToString(graphComponent);
+      } catch (e) {
+        console.error('Failed to parse graph data:', e);
+        return `<pre><code>${code}</code></pre>`;
       }
-      return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
     }
+    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
   };
 
   // Process the markdown content
