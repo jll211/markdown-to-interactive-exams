@@ -28,8 +28,8 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
   // Create a custom renderer that extends the default renderer
   const renderer = new marked.Renderer();
   
-  // Override the code rendering method
-  renderer.code = function(text: string, lang?: string): string {
+  // Override the code rendering method with the correct type signature
+  renderer.code = function({ text, lang, escaped }: marked.Code): string {
     if (lang === 'graph') {
       try {
         const graphData = JSON.parse(text);
@@ -47,10 +47,12 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
         return renderToString(graphComponent);
       } catch (e) {
         console.error('Failed to parse graph data:', e);
-        return `<pre><code>${text}</code></pre>`;
+        return `<pre><code>${escaped ? text : marked.escape(text)}</code></pre>`;
       }
     }
-    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${text}</code></pre>`;
+    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${
+      escaped ? text : marked.escape(text)
+    }</code></pre>`;
   };
 
   // Set up marked options
