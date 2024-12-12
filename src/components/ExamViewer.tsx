@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { marked } from "marked";
+import { renderToString } from "react-dom/server";
 import Graph from "./graphs/Graph";
 
 interface ExamViewerProps {
@@ -25,31 +26,31 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
   };
 
   // Create a custom renderer that extends the default renderer
-  const renderer = {
-    ...new marked.Renderer(),
-    code(code: string, language: string | undefined) {
-      if (language === 'graph') {
-        try {
-          const graphData = JSON.parse(code);
-          const graphComponent = (
-            <div className="my-6">
-              <Graph
-                nodes={graphData.nodes}
-                edges={graphData.edges}
-                width={graphData.width || 400}
-                height={graphData.height || 300}
-                className="mx-auto"
-              />
-            </div>
-          );
-          return `<div>${React.renderToString(graphComponent)}</div>`;
-        } catch (e) {
-          console.error('Failed to parse graph data:', e);
-          return `<pre><code>${code}</code></pre>`;
-        }
+  const renderer = new marked.Renderer();
+  
+  // Override the code rendering method
+  renderer.code = (code: string, language: string | undefined) => {
+    if (language === 'graph') {
+      try {
+        const graphData = JSON.parse(code);
+        const graphComponent = (
+          <div className="my-6">
+            <Graph
+              nodes={graphData.nodes}
+              edges={graphData.edges}
+              width={graphData.width || 400}
+              height={graphData.height || 300}
+              className="mx-auto"
+            />
+          </div>
+        );
+        return renderToString(graphComponent);
+      } catch (e) {
+        console.error('Failed to parse graph data:', e);
+        return `<pre><code>${code}</code></pre>`;
       }
-      return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
     }
+    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
   };
 
   // Set up marked options
