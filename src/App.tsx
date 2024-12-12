@@ -2,8 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { BrowserRouter } from "react-router-dom";
+import { ExamSheet } from './components/ExamSheet';
 
 const queryClient = new QueryClient();
 
@@ -13,9 +13,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-        </Routes>
+        <div className="min-h-screen bg-gray-50 py-8">
+          <ExamSheet />
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
