@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -39,31 +39,42 @@ const ExamViewer = ({ examContent, solutionContent, onBack }: ExamViewerProps) =
     console.log("Solution content:", solutionContent);
   };
 
-  // Custom renderer for marked to handle special content
-  const renderer = {
-    code(code: string, language: string) {
-      if (language === 'graph') {
-        try {
-          const graphData = JSON.parse(code);
-          return `<div class="my-6">
-            ${React.createElement(Graph, {
+  // Create a custom renderer that extends the default renderer
+  const renderer = new marked.Renderer();
+
+  // Override the code rendering method
+  renderer.code = (code: string, language: string | undefined) => {
+    if (language === 'graph') {
+      try {
+        const graphData = JSON.parse(code);
+        return `<div class="my-6">
+          <div id="graph-container">
+            ${Graph({
               nodes: graphData.nodes,
               edges: graphData.edges,
               width: graphData.width || 400,
               height: graphData.height || 300,
               className: 'mx-auto'
             })}
-          </div>`;
-        } catch (e) {
-          console.error('Failed to parse graph data:', e);
-          return `<pre><code>${code}</code></pre>`;
-        }
+          </div>
+        </div>`;
+      } catch (e) {
+        console.error('Failed to parse graph data:', e);
+        return `<pre><code>${code}</code></pre>`;
       }
-      return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
     }
+    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${code}</code></pre>`;
   };
 
-  marked.use({ renderer });
+  // Set up marked options with the custom renderer
+  marked.setOptions({
+    renderer: renderer,
+    gfm: true,
+    breaks: true,
+    sanitize: false,
+    smartLists: true,
+    smartypants: true
+  });
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -82,7 +93,7 @@ const ExamViewer = ({ examContent, solutionContent, onBack }: ExamViewerProps) =
           <div
             className="markdown-content space-y-8"
             dangerouslySetInnerHTML={{ 
-              __html: marked(examContent, { renderer }) 
+              __html: marked(examContent)
             }}
           />
         </div>
