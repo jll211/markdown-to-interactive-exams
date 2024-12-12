@@ -28,8 +28,8 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
   // Create a custom renderer that extends the default renderer
   const renderer = new marked.Renderer();
   
-  // Override the code rendering method with correct type signature
-  renderer.code = function({ text, lang, escaped }: marked.Code): string {
+  // Override the code rendering method
+  renderer.code = function(text: string, lang?: string): string {
     if (lang === 'graph') {
       try {
         const graphData = JSON.parse(text);
