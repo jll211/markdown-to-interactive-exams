@@ -41,43 +41,53 @@ const ExamViewer = ({ examContent, solutionContent, onBack }: ExamViewerProps) =
     <div className="space-y-6">
       <Button
         variant="ghost"
-        className="mb-4"
+        className="mb-4 text-gray-600 hover:text-gray-900"
         onClick={onBack}
         disabled={showResults}
       >
-        <ArrowLeft className="w-4 h-4 mr-2" />
+        <ArrowLeft className="w-5 h-5 mr-2" />
         Zurück
       </Button>
 
-      <Card className="p-6">
-        <div
-          className="prose max-w-none"
-          dangerouslySetInnerHTML={{ __html: marked(examContent) }}
-        />
+      <Card className="p-8 bg-white shadow-lg">
+        <div className="prose max-w-none">
+          <div
+            className="markdown-content"
+            dangerouslySetInnerHTML={{ __html: marked(examContent) }}
+          />
+        </div>
 
-        <div className="mt-6 space-y-4">
-          {/* Beispiel für eine Frage - In der vollständigen Implementierung würden hier die Fragen aus dem Markdown generiert */}
-          <div className="space-y-2">
-            <label className="block font-medium">Frage 1</label>
+        <div className="mt-8 space-y-6">
+          <div className="space-y-4">
+            <label className="block text-lg font-medium text-gray-900">
+              Antwort
+            </label>
             <textarea
-              className="w-full p-2 border rounded-md"
-              rows={4}
+              className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              rows={6}
               onChange={(e) => handleAnswerChange(1, e.target.value)}
               disabled={showResults}
+              placeholder="Geben Sie hier Ihre Antwort ein..."
             />
           </div>
         </div>
 
         {!showResults ? (
-          <Button className="mt-6 w-full" size="lg" onClick={submitExam}>
+          <Button
+            className="mt-8 w-full py-6 text-lg"
+            size="lg"
+            onClick={submitExam}
+          >
             Prüfung abgeben
           </Button>
         ) : (
-          <div className="mt-6 p-4 bg-green-50 rounded-md">
-            <h3 className="font-semibold text-green-800">
+          <div className="mt-8 p-6 bg-green-50 rounded-lg border border-green-200">
+            <h3 className="text-xl font-semibold text-green-800 mb-2">
               Prüfung wurde ausgewertet
             </h3>
-            {/* Hier würde die Auswertung angezeigt */}
+            <p className="text-green-700">
+              Ihre Antworten wurden erfolgreich ausgewertet.
+            </p>
           </div>
         )}
       </Card>

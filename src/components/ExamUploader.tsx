@@ -35,20 +35,23 @@ const ExamUploader = ({ onUpload, icon, accept, label }: ExamUploaderProps) => {
     <div
       {...getRootProps()}
       className={cn(
-        "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+        "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200",
         isDragActive
-          ? "border-primary bg-primary/5"
-          : "border-gray-300 hover:border-primary"
+          ? "border-blue-500 bg-blue-50"
+          : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
       )}
     >
       <input {...getInputProps()} />
-      <div className="flex flex-col items-center space-y-2">
+      <div className="flex flex-col items-center space-y-4">
         {icon}
-        <p className="text-sm text-gray-600">
-          {isDragActive
-            ? "Datei hier ablegen..."
-            : `${label} hierher ziehen oder klicken zum Auswählen`}
-        </p>
+        <div className="space-y-2">
+          <p className="text-lg font-medium text-gray-700">
+            {isDragActive ? "Datei hier ablegen..." : label}
+          </p>
+          <p className="text-sm text-gray-500">
+            Datei hierher ziehen oder klicken zum Auswählen
+          </p>
+        </div>
       </div>
     </div>
   );
