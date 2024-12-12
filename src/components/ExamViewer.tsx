@@ -65,7 +65,9 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
   const renderer = new marked.Renderer();
   
   // Override the code rendering method with the correct type signature
-  renderer.code = function({ text, lang }: { text: string, lang?: string }): string {
+  renderer.code = function(text: string, lang?: string): string {
+    console.log('Rendering code block:', { text, lang }); // Debug log
+    
     if (lang === 'graph') {
       try {
         let graphData;
@@ -79,18 +81,21 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
           graphData = JSON.parse(text);
         }
         
-        const graphComponent = (
+        // Create the graph component
+        const graphElement = (
           <div className="my-6">
             <Graph
               nodes={graphData.nodes}
               edges={graphData.edges}
               width={400}
               height={300}
-              className="mx-auto"
+              className="mx-auto border border-gray-200 rounded-lg"
             />
           </div>
         );
-        return renderToString(graphComponent);
+        
+        // Convert to string and return
+        return renderToString(graphElement);
       } catch (e) {
         console.error('Failed to parse graph data:', e);
         return `<pre><code>${text}</code></pre>`;
@@ -103,14 +108,22 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
   const processContent = (content: string) => {
     // Replace the ASCII graph with our SVG graph
     content = content.replace(
-      /A --- 2 --- B[\s\S]*?C --- 1 --- D/g,
+      /```graph\s*GRAPH_9\s*```/g,
       '```graph\nGRAPH_9\n```'
     );
     content = content.replace(
-      /A --- B --- C[\s\S]*?D --- E --- F/g,
+      /```graph\s*GRAPH_10\s*```/g,
       '```graph\nGRAPH_10\n```'
     );
-    return marked(content, { renderer });
+    
+    // Set marked options
+    marked.setOptions({
+      renderer: renderer,
+      gfm: true,
+      breaks: true
+    });
+    
+    return marked(content);
   };
 
   return (
