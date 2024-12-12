@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { marked } from "marked";
-import { renderToString } from "react-dom/server";
 import Graph from "./graphs/Graph";
 
 interface ExamViewerProps {
@@ -61,69 +59,109 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
     ]
   };
 
-  // Create a custom renderer
-  const renderer = new marked.Renderer();
-  
-  // Override the code rendering method with the correct type signature
-  renderer.code = function(text: string, lang?: string): string {
-    console.log('Rendering code block:', { text, lang }); // Debug log
-    
-    if (lang === 'graph') {
-      try {
-        let graphData;
-        // Check if the code contains specific markers for our predefined graphs
-        if (text.includes('GRAPH_9')) {
-          graphData = graph9Data;
-        } else if (text.includes('GRAPH_10')) {
-          graphData = graph10Data;
-        } else {
-          // If no specific marker, try to parse the code as JSON
-          graphData = JSON.parse(text);
-        }
-        
-        // Create the graph component
-        const graphElement = (
-          <div className="my-6">
-            <Graph
-              nodes={graphData.nodes}
-              edges={graphData.edges}
-              width={400}
-              height={300}
-              className="mx-auto border border-gray-200 rounded-lg"
-            />
-          </div>
-        );
-        
-        // Convert to string and return
-        return renderToString(graphElement);
-      } catch (e) {
-        console.error('Failed to parse graph data:', e);
-        return `<pre><code>${text}</code></pre>`;
-      }
-    }
-    return `<pre class="bg-gray-50 p-4 rounded-lg overflow-x-auto"><code>${text}</code></pre>`;
-  };
+  const parseMarkdown = (content: string): JSX.Element[] => {
+    if (!content) return [];
 
-  // Process the markdown content
-  const processContent = (content: string) => {
-    // Replace the ASCII graph with our SVG graph
-    content = content.replace(
-      /```graph\s*GRAPH_9\s*```/g,
-      '```graph\nGRAPH_9\n```'
-    );
-    content = content.replace(
-      /```graph\s*GRAPH_10\s*```/g,
-      '```graph\nGRAPH_10\n```'
-    );
-    
-    // Set marked options
-    marked.setOptions({
-      renderer: renderer,
-      gfm: true,
-      breaks: true
-    });
-    
-    return marked(content);
+    try {
+      const lines = content.split('\n');
+      const elements: JSX.Element[] = [];
+      let inCodeBlock = false;
+      let codeContent = '';
+      let key = 0;
+
+      lines.forEach((line) => {
+        // Handle code blocks
+        if (line.startsWith('```')) {
+          if (!inCodeBlock) {
+            inCodeBlock = true;
+            const lang = line.slice(3).trim();
+            codeContent = '';
+            if (lang !== 'graph') {
+              elements.push(
+                <pre key={key++} className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
+                  <code>{codeContent}</code>
+                </pre>
+              );
+            }
+          } else {
+            inCodeBlock = false;
+            if (codeContent.includes('GRAPH_9')) {
+              elements.push(
+                <div key={key++} className="my-6">
+                  <Graph
+                    nodes={graph9Data.nodes}
+                    edges={graph9Data.edges}
+                    width={400}
+                    height={300}
+                    className="mx-auto border border-gray-200 rounded-lg"
+                  />
+                </div>
+              );
+            } else if (codeContent.includes('GRAPH_10')) {
+              elements.push(
+                <div key={key++} className="my-6">
+                  <Graph
+                    nodes={graph10Data.nodes}
+                    edges={graph10Data.edges}
+                    width={400}
+                    height={300}
+                    className="mx-auto border border-gray-200 rounded-lg"
+                  />
+                </div>
+              );
+            }
+          }
+          return;
+        }
+
+        if (inCodeBlock) {
+          codeContent += line + '\n';
+          return;
+        }
+
+        // Handle headings
+        if (line.startsWith('# ')) {
+          elements.push(
+            <h1 key={key++} className="text-3xl font-bold mb-4">
+              {line.slice(2)}
+            </h1>
+          );
+        } else if (line.startsWith('## ')) {
+          elements.push(
+            <h2 key={key++} className="text-2xl font-bold mb-3">
+              {line.slice(3)}
+            </h2>
+          );
+        } else if (line.startsWith('### ')) {
+          elements.push(
+            <h3 key={key++} className="text-xl font-bold mb-2">
+              {line.slice(4)}
+            </h3>
+          );
+        }
+        // Handle empty lines as paragraph breaks
+        else if (line.trim() === '') {
+          elements.push(<br key={key++} />);
+        }
+        // Handle regular paragraphs
+        else {
+          elements.push(
+            <p key={key++} className="mb-4">
+              {line}
+            </p>
+          );
+        }
+      });
+
+      return elements;
+    } catch (error) {
+      console.error('Error parsing markdown:', error);
+      return [
+        <p key="error" className="text-red-500">
+          Error parsing content. Please check the format.
+        </p>
+      ];
+    }
   };
 
   return (
@@ -142,23 +180,17 @@ const ExamViewer: React.FC<ExamViewerProps> = ({
 
       <Card className="p-6">
         <div className="prose max-w-none">
-          <div
-            className="markdown-content space-y-8"
-            dangerouslySetInnerHTML={{ 
-              __html: processContent(examContent)
-            }}
-          />
+          <div className="markdown-content space-y-8">
+            {parseMarkdown(examContent)}
+          </div>
         </div>
 
         {showSolution && solutionContent && (
           <div className="mt-8 pt-8 border-t">
             <h3 className="text-lg font-semibold mb-4">Lösung</h3>
-            <div
-              className="markdown-content space-y-4"
-              dangerouslySetInnerHTML={{
-                __html: processContent(solutionContent)
-              }}
-            />
+            <div className="markdown-content space-y-4">
+              {parseMarkdown(solutionContent)}
+            </div>
           </div>
         )}
       </Card>
